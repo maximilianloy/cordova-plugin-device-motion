@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/maximilianloy/cordova-plugin-device-motion"
+    "url": "https://github.com/maximilianloy/cordova-plugin-device-motion-inclino"
   },
   "keywords": [
     "cordova",

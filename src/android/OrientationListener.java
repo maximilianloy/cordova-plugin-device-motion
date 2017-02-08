@@ -44,7 +44,7 @@ import android.os.Looper;
  * This class listens to the accelerometer sensor and stores the latest
  * acceleration values x,y,z.
  */
-public class AccelListener extends CordovaPlugin implements SensorEventListener {
+public class OrientationListener extends CordovaPlugin implements SensorEventListener {
 
     public static int STOPPED = 0;
     public static int STARTING = 1;
@@ -72,20 +72,20 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
     private Handler mainHandler = null;
     private Runnable mainRunnable = new Runnable() {
         public void run() {
-            AccelListener.this.timeout();
+            OrientationListener.this.timeout();
         }
     };
 
     /**
      * Create an accelerometer listener.
      */
-    public AccelListener() {
+    public OrientationListener() {
         this.x = 0;
         this.y = 0;
         this.z = 0;
         this.orientation = 0;
         this.timestamp = 0;
-        this.setStatus(AccelListener.STOPPED);
+        this.setStatus(OrientationListener.STOPPED);
     }
 
     /**
@@ -112,14 +112,14 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
         if (action.equals("start")) {
             this.callbackContext = callbackContext;
-            if (this.status != AccelListener.RUNNING) {
+            if (this.status != OrientationListener.RUNNING) {
                 // If not running, then this is an async call, so don't worry about waiting
                 // We drop the callback onto our stack, call start, and let start and the sensor callback fire off the callback down the road
                 this.start();
             }
         }
         else if (action.equals("stop")) {
-            if (this.status == AccelListener.RUNNING) {
+            if (this.status == OrientationListener.RUNNING) {
                 this.stop();
             }
         } else {
@@ -152,12 +152,12 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
     */
     private int start() {
         // If already starting or running, then restart timeout and return
-        if ((this.status == AccelListener.RUNNING) || (this.status == AccelListener.STARTING)) {
+        if ((this.status == OrientationListener.RUNNING) || (this.status == OrientationListener.STARTING)) {
             startTimeout();
             return this.status;
         }
 
-        this.setStatus(AccelListener.STARTING);
+        this.setStatus(OrientationListener.STARTING);
 
         // 1. try to go with the rotation vector introduced in 2.3.
         // Uses sensor fusion to combine everything available
@@ -174,8 +174,8 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
                     this, this.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                     SensorManager.SENSOR_DELAY_UI);
             if (!hasAccelerometer) {
-                this.setStatus(AccelListener.ERROR_FAILED_TO_START);
-                this.fail(AccelListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
+                this.setStatus(OrientationListener.ERROR_FAILED_TO_START);
+                this.fail(OrientationListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
 
                 Toast.makeText(this.cordova.getActivity().getApplicationContext(),
                         "Inclinometer not supported", Toast.LENGTH_LONG)
@@ -201,19 +201,19 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
         // if ((list != null) && (list.size() > 0)) {
         //     this.mSensor = list.get(0);
         //     if (this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_UI)) {
-        //         this.setStatus(AccelListener.STARTING);
+        //         this.setStatus(OrientationListener.STARTING);
         //         // CB-11531: Mark accuracy as 'reliable' - this is complementary to
         //         // setting it to 'unreliable' 'stop' method
         //         this.accuracy = SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM;
         //     } else {
-        //         this.setStatus(AccelListener.ERROR_FAILED_TO_START);
-        //         this.fail(AccelListener.ERROR_FAILED_TO_START, "Device sensor returned an error.");
+        //         this.setStatus(OrientationListener.ERROR_FAILED_TO_START);
+        //         this.fail(OrientationListener.ERROR_FAILED_TO_START, "Device sensor returned an error.");
         //         return this.status;
         //   };
 
         // } else {
-        //     this.setStatus(AccelListener.ERROR_FAILED_TO_START);
-        //     this.fail(AccelListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
+        //     this.setStatus(OrientationListener.ERROR_FAILED_TO_START);
+        //     this.fail(OrientationListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
         //     return this.status;
         // }
 
@@ -237,10 +237,10 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
      */
     private void stop() {
         stopTimeout();
-        if (this.status != AccelListener.STOPPED) {
+        if (this.status != OrientationListener.STOPPED) {
             this.sensorManager.unregisterListener(this);
         }
-        this.setStatus(AccelListener.STOPPED);
+        this.setStatus(OrientationListener.STOPPED);
         this.accuracy = SensorManager.SENSOR_STATUS_UNRELIABLE;
     }
 
@@ -250,7 +250,7 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
      * Called two seconds after starting the listener.
      */
     private void timeout() {
-        if (this.status == AccelListener.STARTING &&
+        if (this.status == OrientationListener.STARTING &&
             this.accuracy >= SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM) {
             // call win with latest cached position
             // but first check if cached position is reliable
@@ -272,7 +272,7 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
         }
 
         // If not running, then just return
-        if (this.status == AccelListener.STOPPED) {
+        if (this.status == OrientationListener.STOPPED) {
             return;
         }
         this.accuracy = accuracy;
@@ -319,13 +319,13 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
 		}
 
         // If not running, then just return
-        if (this.status == AccelListener.STOPPED) {
+        if (this.status == OrientationListener.STOPPED) {
             return;
         }
-        this.setStatus(AccelListener.RUNNING);
+        this.setStatus(OrientationListener.RUNNING);
 
         if (this.accuracy >= SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM) {
-    		// Log.d("AccelListener", "updating values " + orientation);
+    		// Log.d("OrientationListener", "updating values " + orientation);
 
             // Save time that event was received
             this.timestamp = System.currentTimeMillis();
@@ -343,7 +343,7 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
      */
     @Override
     public void onReset() {
-        if (this.status == AccelListener.RUNNING) {
+        if (this.status == OrientationListener.RUNNING) {
             this.stop();
         }
     }
