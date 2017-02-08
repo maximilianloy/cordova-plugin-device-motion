@@ -21,18 +21,18 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
            id="cordova-plugin-device-motion-inclino"
       version="1.2.4-dev">
-	
+
     <name>Device Motion</name>
     <description>Cordova Device Motion Plugin</description>
     <license>Apache 2.0</license>
     <keywords>cordova,device,motion</keywords>
-    <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-device-motion.git</repo>
+    <repo>https://github.com/maximilianloy/cordova-plugin-device-motion-inclino</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320636</issue>
 
     <js-module src="www/Orientation.js" name="Orientation">
         <clobbers target="Orientation" />
     </js-module>
-    
+
     <js-module src="www/inclinometer.js" name="inclinometer">
         <clobbers target="navigator.inclinometer" />
     </js-module>
@@ -40,11 +40,11 @@
     <!-- firefoxos -->
     <platform name="firefoxos">
         <config-file target="config.xml" parent="/*">
-            <feature name="Accelerometer">
+            <feature name="Inclinometer">
                 <param name="firefoxos-package" value="Accelerometer" />
             </feature>
-        </config-file>                                         
-        
+        </config-file>
+
         <js-module src="src/firefoxos/accelerometer.js" name="accelerometer-impl">
           <runs />
         </js-module>
@@ -52,7 +52,7 @@
 
     <!-- android -->
     <platform name="android">
-	    
+
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="Inclinometer">
                 <param name="android-package" value="org.apache.cordova.devicemotion.OrientationListener"/>
@@ -60,22 +60,22 @@
         </config-file>
 
         <source-file src="src/android/OrientationListener.java" target-dir="src/org/apache/cordova/devicemotion" />
-    
+
     </platform>
-    
+
     <!-- amazon-fireos -->
     <platform name="amazon-fireos">
-	    
+
         <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="Accelerometer">
+            <feature name="Inclinometer">
                 <param name="android-package" value="org.apache.cordova.devicemotion.OrientationListener"/>
             </feature>
         </config-file>
 
         <source-file src="src/android/OrientationListener.java" target-dir="src/org/apache/cordova/devicemotion" />
-    
+
     </platform>
-    
+
     <!-- ubuntu -->
     <platform name="ubuntu">
         <header-file src="src/ubuntu/accelerometer.h" />
@@ -84,23 +84,23 @@
 
     <!-- ios -->
     <platform name="ios">
-        
+
         <config-file target="config.xml" parent="/*">
-            <feature name="Accelerometer">
+            <feature name="Inclinometer">
                 <param name="ios-package" value="CDVAccelerometer"/>
             </feature>
         </config-file>
-            
+
         <header-file src="src/ios/CDVAccelerometer.h" />
         <source-file src="src/ios/CDVAccelerometer.m" />
-        
+
         <framework src="CoreMotion.framework" />
     </platform>
 
     <!-- blackberry10 -->
     <platform name="blackberry10">
         <config-file target="www/config.xml" parent="/widget">
-            <feature name="Accelerometer" value="Accelerometer"/>
+            <feature name="Inclinometer" value="Accelerometer"/>
         </config-file>
         <source-file src="src/blackberry10/index.js" target-dir="Accelerometer" />
     </platform>
@@ -108,7 +108,7 @@
     <!-- wp7 -->
     <platform name="wp7">
         <config-file target="config.xml" parent="/*">
-            <feature name="Accelerometer">
+            <feature name="Inclinometer">
                 <param name="wp-package" value="Accelerometer"/>
             </feature>
         </config-file>
@@ -123,7 +123,7 @@
     <!-- wp8 -->
     <platform name="wp8">
         <config-file target="config.xml" parent="/*">
-            <feature name="Accelerometer">
+            <feature name="Inclinometer">
                 <param name="wp-package" value="Accelerometer"/>
             </feature>
         </config-file>
