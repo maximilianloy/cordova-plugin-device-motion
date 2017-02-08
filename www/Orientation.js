@@ -19,7 +19,7 @@
  *
 */
 
-var Acceleration = function(x, y, z, orientation, timestamp) {
+var Orientation = function(x, y, z, orientation, timestamp) {
     this.x = x;
     this.y = y;
     this.z = z;
@@ -27,4 +27,4 @@ var Acceleration = function(x, y, z, orientation, timestamp) {
     this.timestamp = timestamp || (new Date()).getTime();
 };
 
-module.exports = Acceleration;
+module.exports = Orientation;

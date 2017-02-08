@@ -29,12 +29,12 @@
     <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-device-motion.git</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320636</issue>
 
-    <js-module src="www/Acceleration.js" name="Acceleration">
-        <clobbers target="Acceleration" />
+    <js-module src="www/Orientation.js" name="Orientation">
+        <clobbers target="Orientation" />
     </js-module>
     
-    <js-module src="www/accelerometer.js" name="accelerometer">
-        <clobbers target="navigator.accelerometer" />
+    <js-module src="www/inclinometer.js" name="inclinometer">
+        <clobbers target="navigator.inclinometer" />
     </js-module>
 
     <!-- firefoxos -->
@@ -54,7 +54,7 @@
     <platform name="android">
 	    
         <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="Accelerometer">
+            <feature name="Inclinometer">
                 <param name="android-package" value="org.apache.cordova.devicemotion.OrientationListener"/>
             </feature>
         </config-file>

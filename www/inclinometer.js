@@ -26,18 +26,18 @@
 var argscheck = require('cordova/argscheck'),
     utils = require("cordova/utils"),
     exec = require("cordova/exec"),
-    Acceleration = require('./Acceleration');
+    Orientation = require('./Orientation');
 
 // Is the accel sensor running?
 var running = false;
 
-// Keeps reference to watchAcceleration calls.
+// Keeps reference to watchOrientation calls.
 var timers = {};
 
 // Array of listeners; used to keep track of when we should call start and stop.
 var listeners = [];
 
-// Last returned acceleration object from native
+// Last returned orientation object from native
 var accel = null;
 
 // Timer used when faking up devicemotion events
@@ -47,7 +47,7 @@ var eventTimerId = null;
 function start() {
     exec(function (a) {
         var tempListeners = listeners.slice(0);
-        accel = new Acceleration(a.x, a.y, a.z, a.orientation, a.timestamp);
+        accel = new Orientation(a.x, a.y, a.z, a.orientation, a.timestamp);
         for (var i = 0, l = tempListeners.length; i < l; i++) {
             tempListeners[i].win(accel);
         }
@@ -56,13 +56,13 @@ function start() {
         for (var i = 0, l = tempListeners.length; i < l; i++) {
             tempListeners[i].fail(e);
         }
-    }, "Accelerometer", "start", []);
+    }, "Inclinometer", "start", []);
     running = true;
 }
 
 // Tells native to stop.
 function stop() {
-    exec(null, null, "Accelerometer", "stop", []);
+    exec(null, null, "Inclinometer", "stop", []);
     accel = null;
     running = false;
 }
@@ -83,7 +83,7 @@ function removeListeners(l) {
     }
 }
 
-var accelerometer = {
+var inclinometer = {
     /**
      * Asynchronously acquires the current acceleration.
      *
@@ -91,16 +91,16 @@ var accelerometer = {
      * @param {Function} errorCallback      The function to call when there is an error getting the acceleration data. (OPTIONAL)
      * @param {AccelerationOptions} options The options for getting the accelerometer data such as timeout. (OPTIONAL)
      */
-    getCurrentAcceleration: function (successCallback, errorCallback, options) {
-        argscheck.checkArgs('fFO', 'accelerometer.getCurrentAcceleration', arguments);
+    getCurrentOrientation: function (successCallback, errorCallback, options) {
+        argscheck.checkArgs('fFO', 'inclinometer.getCurrentOrientation', arguments);
 
         if (cordova.platformId === "windowsphone") {
             exec(function (a) {
-                accel = new Acceleration(a.x, a.y, a.z, a.orientation, a.timestamp);
+                accel = new Orientation(a.x, a.y, a.z, a.orientation, a.timestamp);
                 successCallback(accel);
             }, function (e) {
                 errorCallback(e);
-            }, "Accelerometer", "getCurrentAcceleration", []);
+            }, "Inclinometer", "getCurrentOrientation", []);
 
             return;
         }
@@ -133,8 +133,8 @@ var accelerometer = {
      * @param {AccelerationOptions} options The options for getting the accelerometer data such as timeout. (OPTIONAL)
      * @return String                       The watch id that must be passed to #clearWatch to stop watching.
      */
-    watchAcceleration: function (successCallback, errorCallback, options) {
-        argscheck.checkArgs('fFO', 'accelerometer.watchAcceleration', arguments);
+    watchOrientation: function (successCallback, errorCallback, options) {
+        argscheck.checkArgs('fFO', 'inclinometer.watchOrientation', arguments);
         // Default interval (10 sec)
         var frequency = (options && options.frequency && typeof options.frequency == 'number') ? options.frequency : 10000;
 
@@ -180,9 +180,9 @@ var accelerometer = {
     },
 
     /**
-     * Clears the specified accelerometer watch.
+     * Clears the specified inclinometer watch.
      *
-     * @param {String} id       The id of the watch returned from #watchAcceleration.
+     * @param {String} id       The id of the watch returned from #watchOrientation.
      */
     clearWatch: function (id) {
         // Stop javascript timer & remove from timer list
@@ -199,4 +199,4 @@ var accelerometer = {
         }
     }
 };
-module.exports = accelerometer;
+module.exports = inclinometer;

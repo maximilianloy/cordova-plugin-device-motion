@@ -12,18 +12,18 @@ interface Navigator {
      * that detects the change (delta) in movement relative to the current device orientation,
      * in three dimensions along the x, y, and z axis.
      */
-    accelerometer: Accelerometer;
+    inclinometer: Inclinometer;
 }
 
 /**
- * This plugin provides access to the device's accelerometer. The accelerometer is a motion sensor
+ * This plugin provides access to the device's inclinometer. The inclinometer is a motion sensor
  * that detects the change (delta) in movement relative to the current device orientation,
  * in three dimensions along the x, y, and z axis.
  */
-interface Accelerometer {
+interface Inclinometer {
     /**
      * Stop watching the Acceleration referenced by the watchID parameter.
-     * @param watchID The ID returned by navigator.accelerometer.watchAcceleration.
+     * @param watchID The ID returned by navigator.accelerometer.watchOrientation.
      */
     clearWatch(watchID: WatchHandle): void;
     /**
@@ -32,8 +32,8 @@ interface Accelerometer {
      * @param accelerometerSuccess Success callback that gets the Acceleration object.
      * @param accelerometerError Success callback
      */
-    getCurrentAcceleration(
-        accelerometerSuccess: (acceleration: Acceleration) => void,
+    getCurrentOrientation(
+        accelerometerSuccess: (orientation: Orientation) => void,
         accelerometerError: () => void): void;
     /**
      * Retrieves the device's current Acceleration at a regular interval, executing the
@@ -45,8 +45,8 @@ interface Accelerometer {
      * @param  accelerometerError   Error callback.
      * @param  accelerometerOptions Object with options for watchAcceleration
      */
-    watchAcceleration(
-        accelerometerSuccess: (acceleration: Acceleration) => void,
+    watchOrientation(
+        accelerometerSuccess: (orientation: Orientation) => void,
         accelerometerError: () => void,
         accelerometerOptions?: AccelerometerOptions): WatchHandle;
 }
@@ -56,7 +56,7 @@ interface Accelerometer {
  * the effect of gravity (9.81 m/s^2), so that when a device lies flat and facing up, x, y, and z
  * values returned should be 0, 0, and 9.81.
  */
-interface Acceleration {
+interface Orientation {
     /** Amount of acceleration on the x-axis. (in m/s^2) */
     x: number;
     /** Amount of acceleration on the y-axis. (in m/s^2) */
