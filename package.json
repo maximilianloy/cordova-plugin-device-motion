@@ -1,10 +1,10 @@
 {
-  "name": "cordova-plugin-device-motion",
+  "name": "cordova-plugin-device-motion-inclino",
   "version": "1.2.4-dev",
-  "description": "Cordova Device Motion Plugin",
+  "description": "Cordova Device Motion Plugin with orientation",
   "types": "./types/index.d.ts",
   "cordova": {
-    "id": "cordova-plugin-device-motion",
+    "id": "cordova-plugin-device-motion-inclino",
     "platforms": [
       "firefoxos",
       "android",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apache/cordova-plugin-device-motion"
+    "url": "https://github.com/maximilianloy/cordova-plugin-device-motion"
   },
   "keywords": [
     "cordova",

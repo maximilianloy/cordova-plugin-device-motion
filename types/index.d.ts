@@ -63,6 +63,8 @@ interface Acceleration {
     y: number;
     /** Amount of acceleration on the z-axis. (in m/s^2) */
     z: number;
+    /** orientation on the y-axis. (inclinometer) */
+    orientation: number;
     /** Creation timestamp in milliseconds. */
     timestamp: number;
 }

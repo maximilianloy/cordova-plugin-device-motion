@@ -34,6 +34,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
+import android.widget.Toast;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -49,18 +51,26 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
     public static int RUNNING = 2;
     public static int ERROR_FAILED_TO_START = 3;
 
-    private float x,y,z;                                // most recent acceleration values
-    private long timestamp;                         // time of most recent value
-    private int status;                                 // status of listener
+    private float x, y, z; // most recent acceleration values
+    private float orientation;
+    private long timestamp; // time of most recent value
+    private int status; // status of listener
     private int accuracy = SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM;
 
-    private SensorManager sensorManager;    // Sensor manager
-    private Sensor mSensor;                           // Acceleration sensor returned by sensor manager
+    private SensorManager sensorManager; // Sensor manager
+    private Sensor mSensor; // Acceleration sensor returned by sensor manager
 
-    private CallbackContext callbackContext;              // Keeps track of the JS callback context.
+	private float[] mGData = new float[3];
+	private float[] mMData = new float[3];
+	private float[] mR = new float[16];
+	private float[] mOrientation = new float[3];
+	private static final float RAD2DEG = (float) (180.0f / Math.PI);
+	private boolean mHasMagneticSensor = false;
 
-    private Handler mainHandler=null;
-    private Runnable mainRunnable =new Runnable() {
+    private CallbackContext callbackContext; // Keeps track of the JS callback context.
+
+    private Handler mainHandler = null;
+    private Runnable mainRunnable = new Runnable() {
         public void run() {
             AccelListener.this.timeout();
         }
@@ -73,9 +83,10 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
         this.x = 0;
         this.y = 0;
         this.z = 0;
+        this.orientation = 0;
         this.timestamp = 0;
         this.setStatus(AccelListener.STOPPED);
-     }
+    }
 
     /**
      * Sets the context of the Command. This can then be used to do things like
@@ -112,7 +123,7 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
                 this.stop();
             }
         } else {
-          // Unsupported action
+            // Unsupported action
             return false;
         }
 
@@ -148,28 +159,63 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
 
         this.setStatus(AccelListener.STARTING);
 
-        // Get accelerometer from sensor manager
-        List<Sensor> list = this.sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        // 1. try to go with the rotation vector introduced in 2.3.
+        // Uses sensor fusion to combine everything available
+        // (accelerometer, magnetic field, gyroscope,...)
+        // It's OK to call this on older devices -> only using a new int
+        boolean hasRotationSensor = this.sensorManager.registerListener(this,
+                this.sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+                SensorManager.SENSOR_DELAY_UI);
+        if (!hasRotationSensor) {
 
-        // If found, then register as listener
-        if ((list != null) && (list.size() > 0)) {
-          this.mSensor = list.get(0);
-          if (this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_UI)) {
-              this.setStatus(AccelListener.STARTING);
-              // CB-11531: Mark accuracy as 'reliable' - this is complementary to
-              // setting it to 'unreliable' 'stop' method
-              this.accuracy = SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM;
-          } else {
-              this.setStatus(AccelListener.ERROR_FAILED_TO_START);
-              this.fail(AccelListener.ERROR_FAILED_TO_START, "Device sensor returned an error.");
-              return this.status;
-          };
+            // 2. fall back on accelerometer sensor
 
-        } else {
-          this.setStatus(AccelListener.ERROR_FAILED_TO_START);
-          this.fail(AccelListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
-          return this.status;
+            boolean hasAccelerometer = this.sensorManager.registerListener(
+                    this, this.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                    SensorManager.SENSOR_DELAY_UI);
+            if (!hasAccelerometer) {
+                this.setStatus(AccelListener.ERROR_FAILED_TO_START);
+                this.fail(AccelListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
+
+                Toast.makeText(this.cordova.getActivity().getApplicationContext(),
+                        "Inclinometer not supported", Toast.LENGTH_LONG)
+                        .show();
+                return this.status;
+            }
+
+            mHasMagneticSensor = this.sensorManager.registerListener(this,
+                    this.sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+                    SensorManager.SENSOR_DELAY_UI);
+            if (!mHasMagneticSensor) {
+                // accelerometer is not really accurate
+                Toast.makeText(this.cordova.getActivity().getApplicationContext(),
+                        "Inclination inaccurate", Toast.LENGTH_LONG)
+                        .show();
+            }
         }
+
+        // // Get rotation vector from sensor manager
+        // List<Sensor> list = this.sensorManager.getSensorList(Sensor.TYPE_ROTATION_VECTOR);
+
+        // // If found, then register as listener
+        // if ((list != null) && (list.size() > 0)) {
+        //     this.mSensor = list.get(0);
+        //     if (this.sensorManager.registerListener(this, this.mSensor, SensorManager.SENSOR_DELAY_UI)) {
+        //         this.setStatus(AccelListener.STARTING);
+        //         // CB-11531: Mark accuracy as 'reliable' - this is complementary to
+        //         // setting it to 'unreliable' 'stop' method
+        //         this.accuracy = SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM;
+        //     } else {
+        //         this.setStatus(AccelListener.ERROR_FAILED_TO_START);
+        //         this.fail(AccelListener.ERROR_FAILED_TO_START, "Device sensor returned an error.");
+        //         return this.status;
+        //   };
+
+        // } else {
+        //     this.setStatus(AccelListener.ERROR_FAILED_TO_START);
+        //     this.fail(AccelListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
+        //     return this.status;
+        // }
 
         startTimeout();
 
@@ -182,7 +228,7 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
         mainHandler.postDelayed(mainRunnable, 2000);
     }
     private void stopTimeout() {
-        if(mainHandler!=null){
+        if (mainHandler != null) {
             mainHandler.removeCallbacks(mainRunnable);
         }
     }
@@ -238,10 +284,39 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
      * @param SensorEvent event
      */
     public void onSensorChanged(SensorEvent event) {
-        // Only look at accelerometer events
-        if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
-            return;
-        }
+		float orientation = 0;
+
+        switch (event.sensor.getType()) {
+
+		case Sensor.TYPE_ROTATION_VECTOR:
+			SensorManager.getRotationMatrixFromVector(mR, event.values);
+			orientation = getRotationOrientation();
+			break;
+
+		case Sensor.TYPE_ACCELEROMETER:
+			System.arraycopy(event.values, 0, mGData, 0, 3);
+
+			if (mHasMagneticSensor) {
+				SensorManager.getRotationMatrix(mR, null, mGData, mMData);
+				orientation = getRotationOrientation();
+			} else {
+				// Use fallback method for phones without rotation vector or
+				// magnetic sensor - this is very poor quality!
+				// TODO: this should probably be 90/9,81 -> 9,1743119266055
+				orientation = -event.values[1] * 9; // "9" was found using trial + error
+			}
+			break;
+
+		case Sensor.TYPE_MAGNETIC_FIELD:
+			System.arraycopy(event.values, 0, mMData, 0, 3);
+			SensorManager.getRotationMatrix(mR, null, mGData, mMData);
+			orientation = getRotationOrientation();
+			break;
+
+		default:
+			// we should not be here.
+			return;
+		}
 
         // If not running, then just return
         if (this.status == AccelListener.STOPPED) {
@@ -250,12 +325,14 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
         this.setStatus(AccelListener.RUNNING);
 
         if (this.accuracy >= SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM) {
+    		// Log.d("AccelListener", "updating values " + orientation);
 
             // Save time that event was received
             this.timestamp = System.currentTimeMillis();
             this.x = event.values[0];
             this.y = event.values[1];
             this.z = event.values[2];
+            this.orientation = orientation;
 
             this.win();
         }
@@ -270,6 +347,16 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
             this.stop();
         }
     }
+
+	/**
+	 * Return orientation using current orientation matrix.
+	 *
+	 * @return orientation in degree
+	 */
+	private float getRotationOrientation() {
+		SensorManager.getOrientation(mR, mOrientation);
+		return mOrientation[1] * RAD2DEG;
+	}
 
     // Sends an error back to JS
     private void fail(int code, String message) {
@@ -302,6 +389,7 @@ public class AccelListener extends CordovaPlugin implements SensorEventListener 
             r.put("x", this.x);
             r.put("y", this.y);
             r.put("z", this.z);
+            r.put("orientation", this.orientation);
             r.put("timestamp", this.timestamp);
         } catch (JSONException e) {
             e.printStackTrace();
