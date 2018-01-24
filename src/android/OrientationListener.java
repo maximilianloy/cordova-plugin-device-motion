@@ -60,12 +60,12 @@ public class OrientationListener extends CordovaPlugin implements SensorEventLis
     private SensorManager sensorManager; // Sensor manager
     private Sensor mSensor; // Acceleration sensor returned by sensor manager
 
-	private float[] mGData = new float[3];
-	private float[] mMData = new float[3];
-	private float[] mR = new float[16];
-	private float[] mOrientation = new float[3];
-	private static final float RAD2DEG = (float) (180.0f / Math.PI);
-	private boolean mHasMagneticSensor = false;
+    private float[] mGData = new float[3];
+    private float[] mMData = new float[3];
+    private float[] mR = new float[16];
+    private float[] mOrientation = new float[3];
+    private static final float RAD2DEG = (float) (180.0f / Math.PI);
+    private boolean mHasMagneticSensor = false;
 
     private CallbackContext callbackContext; // Keeps track of the JS callback context.
 
@@ -178,7 +178,7 @@ public class OrientationListener extends CordovaPlugin implements SensorEventLis
                 this.fail(OrientationListener.ERROR_FAILED_TO_START, "No sensors found to register accelerometer listening to.");
 
                 Toast.makeText(this.cordova.getActivity().getApplicationContext(),
-                        "Inclinometer not supported", Toast.LENGTH_LONG)
+                        "Device is missing necessary sensors!", Toast.LENGTH_LONG)
                         .show();
                 return this.status;
             }
@@ -189,7 +189,7 @@ public class OrientationListener extends CordovaPlugin implements SensorEventLis
             if (!mHasMagneticSensor) {
                 // accelerometer is not really accurate
                 Toast.makeText(this.cordova.getActivity().getApplicationContext(),
-                        "Inclination inaccurate", Toast.LENGTH_LONG)
+                        "Inclination may be inaccurate due to missing sensors!", Toast.LENGTH_LONG)
                         .show();
             }
         }
@@ -284,39 +284,39 @@ public class OrientationListener extends CordovaPlugin implements SensorEventLis
      * @param SensorEvent event
      */
     public void onSensorChanged(SensorEvent event) {
-		float orientation = 0;
+        float orientation = 0;
 
         switch (event.sensor.getType()) {
 
-		case Sensor.TYPE_ROTATION_VECTOR:
-			SensorManager.getRotationMatrixFromVector(mR, event.values);
-			orientation = getRotationOrientation();
-			break;
+        case Sensor.TYPE_ROTATION_VECTOR:
+            SensorManager.getRotationMatrixFromVector(mR, event.values);
+            orientation = getRotationOrientation();
+            break;
 
-		case Sensor.TYPE_ACCELEROMETER:
-			System.arraycopy(event.values, 0, mGData, 0, 3);
+        case Sensor.TYPE_ACCELEROMETER:
+            System.arraycopy(event.values, 0, mGData, 0, 3);
 
-			if (mHasMagneticSensor) {
-				SensorManager.getRotationMatrix(mR, null, mGData, mMData);
-				orientation = getRotationOrientation();
-			} else {
-				// Use fallback method for phones without rotation vector or
-				// magnetic sensor - this is very poor quality!
-				// TODO: this should probably be 90/9,81 -> 9,1743119266055
-				orientation = -event.values[1] * 9; // "9" was found using trial + error
-			}
-			break;
+            if (mHasMagneticSensor) {
+                SensorManager.getRotationMatrix(mR, null, mGData, mMData);
+                orientation = getRotationOrientation();
+            } else {
+                // Use fallback method for phones without rotation vector or
+                // magnetic sensor - this is very poor quality!
+                // TODO: this should probably be 90/9,81 -> 9,1743119266055
+                orientation = -event.values[1] * 9; // "9" was found using trial + error
+            }
+            break;
 
-		case Sensor.TYPE_MAGNETIC_FIELD:
-			System.arraycopy(event.values, 0, mMData, 0, 3);
-			SensorManager.getRotationMatrix(mR, null, mGData, mMData);
-			orientation = getRotationOrientation();
-			break;
+        case Sensor.TYPE_MAGNETIC_FIELD:
+            System.arraycopy(event.values, 0, mMData, 0, 3);
+            SensorManager.getRotationMatrix(mR, null, mGData, mMData);
+            orientation = getRotationOrientation();
+            break;
 
-		default:
-			// we should not be here.
-			return;
-		}
+        default:
+            // we should not be here.
+            return;
+        }
 
         // If not running, then just return
         if (this.status == OrientationListener.STOPPED) {
@@ -325,7 +325,7 @@ public class OrientationListener extends CordovaPlugin implements SensorEventLis
         this.setStatus(OrientationListener.RUNNING);
 
         if (this.accuracy >= SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM) {
-    		// Log.d("OrientationListener", "updating values " + orientation);
+            // Log.d("OrientationListener", "updating values " + orientation);
 
             // Save time that event was received
             this.timestamp = System.currentTimeMillis();
@@ -348,15 +348,15 @@ public class OrientationListener extends CordovaPlugin implements SensorEventLis
         }
     }
 
-	/**
-	 * Return orientation using current orientation matrix.
-	 *
-	 * @return orientation in degree
-	 */
-	private float getRotationOrientation() {
-		SensorManager.getOrientation(mR, mOrientation);
-		return mOrientation[1] * RAD2DEG;
-	}
+    /**
+     * Return orientation using current orientation matrix.
+     *
+     * @return orientation in degree
+     */
+    private float getRotationOrientation() {
+        SensorManager.getOrientation(mR, mOrientation);
+        return mOrientation[1] * RAD2DEG;
+    }
 
     // Sends an error back to JS
     private void fail(int code, String message) {
